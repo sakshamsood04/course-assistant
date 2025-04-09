@@ -1,58 +1,11 @@
 import os
 from typing import List, Any, Optional
 from dotenv import load_dotenv
-
-# Try different import paths based on what's available
-# try:
 from langchain_community.document_loaders import PyPDFLoader, DirectoryLoader
-#     print("1.1")
-# except ImportError:
-#     try:
-#         from langchain.document_loaders import PyPDFLoader, DirectoryLoader
-#         print("1.2")
-#     except ImportError:
-#         raise ImportError("Could not import document loaders. Try installing with 'pip install langchain-community'")
-
-# try:
 from langchain_text_splitters import RecursiveCharacterTextSplitter
-#     print("2.1")
-# except ImportError:
-#     try:
-#         from langchain.text_splitter import RecursiveCharacterTextSplitter
-#         print("2.2")
-#     except ImportError:
-#         raise ImportError("Could not import text splitters. Try installing with 'pip install langchain-text-splitters'")
-
-# try:
 from langchain_openai import OpenAIEmbeddings
-#     print("3.1")
-# except ImportError:
-#     try:
-#         from langchain.embeddings import OpenAIEmbeddings
-#         print("3.3")
-#     except ImportError:
-#         raise ImportError("Could not import embeddings. Try installing with 'pip install langchain-openai'")
-
-# try:
 from langchain_core.documents import Document
-#     print("4.1")
-# except ImportError:
-#     try:
-#         from langchain.schema import Document
-#         print("4.2")
-#     except ImportError:
-#         raise ImportError("Could not import Document class. Try installing with 'pip install langchain-core'")
-
-# Import the correct Chroma class
-# try:
 from langchain_chroma import Chroma
-#     print("5.1")
-# except ImportError:
-#     try:
-#         from langchain.vectorstores import Chroma
-#         print("5.2")
-#     except ImportError:
-#         raise ImportError("Could not import Chroma class. Try installing with 'pip install langchain-chroma'")
 
 # Load environment variables
 load_dotenv()

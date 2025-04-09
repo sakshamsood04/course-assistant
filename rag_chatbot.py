@@ -1,48 +1,13 @@
 import os
 from typing import List, Dict, Any, Optional, Tuple
 from dotenv import load_dotenv
-
-# Import the correct Chroma class
-# try:
 from langchain_chroma import Chroma
-#     print("ragchatbot 1.1")
-# except ImportError:
-#     from langchain.vectorstores import Chroma
-#     print("ragchatbot 1.2")
-
 from langchain_openai import ChatOpenAI
 from langchain.chains import create_qa_with_sources_chain, create_retrieval_chain
 from langchain.chains.combine_documents import create_stuff_documents_chain
 from langchain_core.messages import HumanMessage, AIMessage
 from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
-
-# Import the correct callback tracker
-# try:
-#     from langchain_core.callbacks import get_openai_callback
-#     print("ragchatbot 2.1")
-# except ImportError:
-#     try:
 from langchain.callbacks import get_openai_callback
-    #     print("ragchatbot 2.2")
-    # except ImportError:
-    #     # Create a simple callback tracker if neither import works
-    #     print("ragchatbot 2.3-created its own open ai callback handler")
-    #     class OpenAICallbackHandler:
-    #         def __init__(self):
-    #             self.total_tokens = 0
-    #             self.prompt_tokens = 0
-    #             self.completion_tokens = 0
-    #             self.total_cost = 0.0
-                
-    #         def __enter__(self):
-    #             return self
-                
-    #         def __exit__(self, exc_type, exc_value, traceback):
-    #             pass
-        
-    #     def get_openai_callback():
-    #         return OpenAICallbackHandler()
-
 from langchain.memory import ConversationBufferMemory
 from vector_store import VectorStoreManager
 
