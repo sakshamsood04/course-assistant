@@ -10,9 +10,11 @@ from vector_store import VectorStoreManager
 from rag_chatbot import CourseAssistantChatbot
 
 # Import adaptation script for Railway (only runs if in production)
-if os.environ.get('RAILWAY_ENVIRONMENT'):
-    from adapt_for_railway import adapt_for_railway
-    adapt_for_railway()
+# if os.environ.get('RAILWAY_ENVIRONMENT'):
+#     from adapt_for_railway import adapt_for_railway
+#     adapt_for_railway()
+
+#commented above function
 
 # Load environment variables
 load_dotenv()
