@@ -5,8 +5,8 @@ from flask import Flask, request, jsonify, render_template, redirect, url_for, f
 from werkzeug.utils import secure_filename
 from dotenv import load_dotenv
 
-from document_processor import DocumentProcessor
-from vector_store_manager import VectorStoreManager
+from doc_proc import DocumentProcessor
+from vector_store import VectorStoreManager
 from rag_chatbot import CourseAssistantChatbot
 
 # Import adaptation script for Railway (only runs if in production)
