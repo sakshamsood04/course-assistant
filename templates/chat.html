@@ -1,0 +1,249 @@
+{% extends "layout.html" %}
+
+{% block title %}Chat with CourseTA{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-3 mb-4">
+        <div class="card shadow-sm mb-4">
+            <div class="card-header bg-primary text-white">
+                <h5 class="card-title mb-0">
+                    <i class="fas fa-book me-2"></i>Your Classes
+                </h5>
+            </div>
+            <div class="card-body p-0">
+                <div class="list-group list-group-flush">
+                    {% if classes %}
+                        {% for class in classes %}
+                            <a href="{{ url_for('chat', class_name=class) }}" class="list-group-item list-group-item-action {% if class == current_class %}active{% endif %}">
+                                {{ class }}
+                            </a>
+                        {% endfor %}
+                    {% else %}
+                        <div class="p-3 text-center">
+                            <p class="text-muted mb-0">No classes available</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+            <div class="card-footer">
+                <a href="{{ url_for('add_class') }}" class="btn btn-outline-primary btn-sm w-100">
+                    <i class="fas fa-plus me-1"></i>Add New Class
+                </a>
+            </div>
+        </div>
+        
+        <div class="d-grid gap-2">
+            <button id="reset-chat-btn" class="btn btn-outline-secondary" {% if not current_class %}disabled{% endif %}>
+                <i class="fas fa-trash me-2"></i>Reset Chat
+            </button>
+        </div>
+    </div>
+    
+    <div class="col-md-9">
+        <div class="card shadow-sm">
+            <div class="card-header bg-primary text-white">
+                <h5 class="card-title mb-0">
+                    <i class="fas fa-comment-dots me-2"></i>Chat with CourseTA
+                    {% if current_class %}
+                        <span class="badge bg-light text-primary ms-2">{{ current_class }}</span>
+                    {% endif %}
+                </h5>
+            </div>
+            <div class="card-body p-3">
+                {% if current_class %}
+                    <div class="chat-container">
+                        <div class="chat-messages" id="chat-messages">
+                            <div class="assistant-message">
+                                <div class="markdown-content">
+                                    <p>👋 Hello! I'm your teaching assistant for <strong>{{ current_class }}</strong>. I'm here to help you understand the course material better.</p>
+                                    <p>You can ask me questions about:</p>
+                                    <ul>
+                                        <li>Course concepts and theories</li>
+                                        <li>Problem-solving techniques</li>
+                                        <li>Clarification on lecture content</li>
+                                        <li>Textbook explanations</li>
+                                    </ul>
+                                    <p>How can I assist you today?</p>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="loading-indicator" id="loading-indicator">
+                            <div class="spinner-border text-primary" role="status">
+                                <span class="visually-hidden">Loading...</span>
+                            </div>
+                            <p class="mt-2 mb-0">Thinking...</p>
+                        </div>
+                        
+                        <div class="mt-3">
+                            <form id="chat-form" class="d-flex">
+                                <input type="text" id="question-input" class="form-control me-2" placeholder="Ask a question..." required>
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="fas fa-paper-plane"></i>
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                {% else %}
+                    <div class="text-center py-5">
+                        <div class="display-6 text-muted mb-3">
+                            <i class="fas fa-robot"></i>
+                        </div>
+                        <h4 class="mb-3">No Class Selected</h4>
+                        <p class="lead mb-4">Please select a class from the sidebar or add a new class to get started.</p>
+                        <a href="{{ url_for('add_class') }}" class="btn btn-primary">
+                            <i class="fas fa-plus-circle me-2"></i>Add Your First Class
+                        </a>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        {% if current_class %}
+            const chatForm = document.getElementById('chat-form');
+            const questionInput = document.getElementById('question-input');
+            const chatMessages = document.getElementById('chat-messages');
+            const loadingIndicator = document.getElementById('loading-indicator');
+            const resetChatBtn = document.getElementById('reset-chat-btn');
+            const currentClass = "{{ current_class }}";
+            
+            // Function to scroll to the bottom of the chat
+            function scrollToBottom() {
+                chatMessages.scrollTop = chatMessages.scrollHeight;
+            }
+            
+            // Function to add a message to the chat
+            function addMessage(content, isUser = false, sources = [], tokensUsed = null) {
+                const messageDiv = document.createElement('div');
+                messageDiv.className = isUser ? 'user-message' : 'assistant-message';
+                
+                const messageContent = document.createElement('div');
+                messageContent.className = 'markdown-content';
+                
+                if (isUser) {
+                    messageContent.textContent = content;
+                } else {
+                    // Render markdown for assistant messages
+                    messageContent.innerHTML = marked.parse(content);
+                    
+                    // Add source information if available
+                    if (sources && sources.length > 0) {
+                        const sourceDiv = document.createElement('div');
+                        sourceDiv.className = 'source-info';
+                        sourceDiv.innerHTML = '<strong>Sources:</strong>';
+                        
+                        const sourceList = document.createElement('ul');
+                        sourceList.className = 'mb-0 ps-3';
+                        
+                        sources.forEach(source => {
+                            const sourceItem = document.createElement('li');
+                            sourceItem.textContent = `${source.document_type}: ${source.filename}${source.page ? ', Page ' + source.page : ''}`;
+                            sourceList.appendChild(sourceItem);
+                        });
+                        
+                        sourceDiv.appendChild(sourceList);
+                        messageContent.appendChild(sourceDiv);
+                    }
+                    
+                    // Add token usage info if available
+                    if (tokensUsed !== null) {
+                        const tokenDiv = document.createElement('div');
+                        tokenDiv.className = 'token-info';
+                        tokenDiv.textContent = `Tokens used: ${tokensUsed}`;
+                        messageContent.appendChild(tokenDiv);
+                    }
+                    
+                    // Apply syntax highlighting to code blocks
+                    messageContent.querySelectorAll('pre code').forEach((block) => {
+                        hljs.highlightElement(block);
+                    });
+                }
+                
+                messageDiv.appendChild(messageContent);
+                chatMessages.appendChild(messageDiv);
+                scrollToBottom();
+            }
+            
+            // Submit form handler
+            chatForm.addEventListener('submit', function(event) {
+                event.preventDefault();
+                
+                const question = questionInput.value.trim();
+                if (!question) return;
+                
+                // Add user message
+                addMessage(question, true);
+                
+                // Clear input
+                questionInput.value = '';
+                
+                // Show loading indicator
+                loadingIndicator.style.display = 'block';
+                scrollToBottom();
+                
+                // Send request to the server
+                fetch('/chat', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        class_name: currentClass,
+                        question: question
+                    })
+                })
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Network response was not ok');
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    // Hide loading indicator
+                    loadingIndicator.style.display = 'none';
+                    
+                    // Add assistant message
+                    addMessage(data.answer, false, data.sources, data.tokens_used);
+                })
+                .catch(error => {
+                    // Hide loading indicator
+                    loadingIndicator.style.display = 'none';
+                    
+                    // Show error message
+                    addMessage('Sorry, there was an error processing your request. Please try again.', false);
+                    console.error('Error:', error);
+                });
+            });
+            
+            // Reset chat button handler
+            resetChatBtn.addEventListener('click', function() {
+                if (confirm('Are you sure you want to reset the chat history?')) {
+                    fetch('/reset-chat', {
+                        method: 'POST'
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        // Clear chat messages except the first welcome message
+                        while (chatMessages.childNodes.length > 1) {
+                            chatMessages.removeChild(chatMessages.lastChild);
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                    });
+                }
+            });
+            
+            // Initial scroll to bottom
+            scrollToBottom();
+        {% endif %}
+    });
+</script>
+{% endblock %}

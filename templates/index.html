@@ -1,0 +1,92 @@
+{% extends "layout.html" %}
+
+{% block title %}CourseTA - AI Teaching Assistant for Your Courses{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-8 offset-md-2 text-center">
+        <div class="p-5 mb-4 bg-light rounded-3">
+            <h1 class="display-5 fw-bold mb-4">
+                <i class="fas fa-robot text-primary me-3"></i>
+                CourseTA
+            </h1>
+            <p class="fs-4 mb-4">Your AI Teaching Assistant for College Courses</p>
+            <p class="lead mb-4">Upload your course materials and get instant answers to your questions.</p>
+            
+            {% if classes %}
+                <div class="d-grid gap-2 d-sm-flex justify-content-sm-center mb-4">
+                    <a href="{{ url_for('chat') }}" class="btn btn-primary btn-lg px-4 gap-3">
+                        <i class="fas fa-comment-dots me-2"></i>Start Chatting
+                    </a>
+                    <a href="{{ url_for('add_class') }}" class="btn btn-outline-secondary btn-lg px-4">
+                        <i class="fas fa-plus-circle me-2"></i>Add New Class
+                    </a>
+                </div>
+            {% else %}
+                <div class="d-grid gap-2 d-sm-flex justify-content-sm-center mb-4">
+                    <a href="{{ url_for('add_class') }}" class="btn btn-primary btn-lg px-4 gap-3">
+                        <i class="fas fa-plus-circle me-2"></i>Add Your First Class
+                    </a>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+{% if classes %}
+    <div class="row mb-4">
+        <div class="col-12">
+            <h2 class="mb-4">Your Classes</h2>
+        </div>
+        
+        {% for class in classes %}
+            <div class="col-md-4 mb-4">
+                <div class="card h-100 shadow-sm">
+                    <div class="card-body">
+                        <h5 class="card-title">{{ class }}</h5>
+                        <p class="card-text">Ask questions about your course materials and get instant answers.</p>
+                    </div>
+                    <div class="card-footer bg-transparent border-top-0">
+                        <a href="{{ url_for('chat', class_name=class) }}" class="btn btn-primary">
+                            <i class="fas fa-comment-dots me-2"></i>Chat
+                        </a>
+                    </div>
+                </div>
+            </div>
+        {% endfor %}
+    </div>
+{% endif %}
+
+<div class="row">
+    <div class="col-12">
+        <div class="card shadow-sm">
+            <div class="card-body">
+                <h3 class="card-title">How It Works</h3>
+                <div class="row mt-4">
+                    <div class="col-md-4 text-center mb-4">
+                        <div class="display-6 text-primary mb-3">
+                            <i class="fas fa-file-pdf"></i>
+                        </div>
+                        <h5>1. Upload Course Materials</h5>
+                        <p>Add textbooks, lecture notes, and assignments as PDFs.</p>
+                    </div>
+                    <div class="col-md-4 text-center mb-4">
+                        <div class="display-6 text-primary mb-3">
+                            <i class="fas fa-brain"></i>
+                        </div>
+                        <h5>2. AI Processing</h5>
+                        <p>Our system analyzes the content and creates a searchable knowledge base.</p>
+                    </div>
+                    <div class="col-md-4 text-center mb-4">
+                        <div class="display-6 text-primary mb-3">
+                            <i class="fas fa-comment-dots"></i>
+                        </div>
+                        <h5>3. Ask Questions</h5>
+                        <p>Get accurate answers based on your specific course materials.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

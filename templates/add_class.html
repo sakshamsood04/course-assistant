@@ -1,0 +1,134 @@
+{% extends "layout.html" %}
+
+{% block title %}Add New Class - CourseTA{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-8 offset-md-2">
+        <div class="card shadow-sm">
+            <div class="card-header bg-primary text-white">
+                <h5 class="card-title mb-0">
+                    <i class="fas fa-plus-circle me-2"></i>Add New Class
+                </h5>
+            </div>
+            <div class="card-body">
+                <form action="{{ url_for('add_class') }}" method="post" enctype="multipart/form-data">
+                    <div class="mb-4">
+                        <label for="class_name" class="form-label">Class Name</label>
+                        <input type="text" class="form-control" id="class_name" name="class_name" required placeholder="e.g., Machine Learning 101">
+                        <div class="form-text">Enter a descriptive name for your class</div>
+                    </div>
+                    
+                    <hr class="my-4">
+                    
+                    <div class="mb-4">
+                        <div class="d-flex align-items-center mb-3">
+                            <i class="fas fa-book text-primary me-2 fa-lg"></i>
+                            <h5 class="mb-0">Textbook</h5>
+                        </div>
+                        <div class="input-group">
+                            <input type="file" class="form-control" id="textbook" name="textbook" accept=".pdf">
+                            <label class="input-group-text" for="textbook">Upload</label>
+                        </div>
+                        <div class="form-text">Upload the main textbook for this class (PDF format)</div>
+                    </div>
+                    
+                    <div class="mb-4">
+                        <div class="d-flex align-items-center mb-3">
+                            <i class="fas fa-file-alt text-success me-2 fa-lg"></i>
+                            <h5 class="mb-0">Lecture Notes</h5>
+                        </div>
+                        <div class="input-group">
+                            <input type="file" class="form-control" id="lecture_notes" name="lecture_notes" accept=".pdf" multiple>
+                            <label class="input-group-text" for="lecture_notes">Upload</label>
+                        </div>
+                        <div class="form-text">Upload lecture notes for this class (multiple PDF files allowed)</div>
+                    </div>
+                    
+                    <div class="mb-4">
+                        <div class="d-flex align-items-center mb-3">
+                            <i class="fas fa-tasks text-warning me-2 fa-lg"></i>
+                            <h5 class="mb-0">Assignments</h5>
+                        </div>
+                        <div class="input-group">
+                            <input type="file" class="form-control" id="assignments" name="assignments" accept=".pdf" multiple>
+                            <label class="input-group-text" for="assignments">Upload</label>
+                        </div>
+                        <div class="form-text">Upload assignments, problem sets or quizzes (multiple PDF files allowed)</div>
+                    </div>
+                    
+                    <div class="alert alert-info" role="alert">
+                        <i class="fas fa-info-circle me-2"></i>
+                        <strong>Note:</strong> Processing large files might take some time. Please be patient after submission.
+                    </div>
+                    
+                    <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                        <a href="{{ url_for('index') }}" class="btn btn-outline-secondary me-md-2">Cancel</a>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-save me-2"></i>Add Class
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const textbookInput = document.getElementById('textbook');
+        const lectureNotesInput = document.getElementById('lecture_notes');
+        const assignmentsInput = document.getElementById('assignments');
+        
+        // Function to format file size
+        function formatFileSize(bytes) {
+            if (bytes === 0) return '0 Bytes';
+            
+            const k = 1024;
+            const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+            const i = Math.floor(Math.log(bytes) / Math.log(k));
+            
+            return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+        }
+        
+        // Function to update the file input label with file info
+        function updateFileLabel(input) {
+            const label = input.nextElementSibling;
+            
+            if (input.files.length === 0) {
+                label.textContent = 'Upload';
+                return;
+            }
+            
+            if (input.multiple) {
+                // Multiple files
+                let totalSize = 0;
+                for (let i = 0; i < input.files.length; i++) {
+                    totalSize += input.files[i].size;
+                }
+                
+                label.textContent = `${input.files.length} file(s) - ${formatFileSize(totalSize)}`;
+            } else {
+                // Single file
+                const file = input.files[0];
+                label.textContent = `${file.name} - ${formatFileSize(file.size)}`;
+            }
+        }
+        
+        // Add event listeners to update labels when files are selected
+        textbookInput.addEventListener('change', function() {
+            updateFileLabel(this);
+        });
+        
+        lectureNotesInput.addEventListener('change', function() {
+            updateFileLabel(this);
+        });
+        
+        assignmentsInput.addEventListener('change', function() {
+            updateFileLabel(this);
+        });
+    });
+</script>
+{% endblock %}
