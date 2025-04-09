@@ -6,12 +6,12 @@ from dotenv import load_dotenv
 from langchain_openai import OpenAIEmbeddings
 
 # Import the correct Chroma class
-try:
-    from langchain_chroma import Chroma
-    print("v1.1")
-except ImportError:
-    from langchain.vectorstores import Chroma
-    print("v1.2")
+# try:
+from langchain_chroma import Chroma
+#     print("v1.1")
+# except ImportError:
+#     from langchain.vectorstores import Chroma
+#     print("v1.2")
 
 from langchain_core.documents import Document
 
