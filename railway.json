@@ -7,12 +7,6 @@
     "deploy": {
       "startCommand": "python -m gunicorn app:app",
       "restartPolicyType": "ON_FAILURE",
-      "restartPolicyMaxRetries": 10,
-      "envs": [
-        {
-          "name": "APP_PASSWORD",
-          "value": "${APP_PASSWORD}"
-        }
-      ]
+      "restartPolicyMaxRetries": 10
     }
   }
