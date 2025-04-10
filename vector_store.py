@@ -9,19 +9,31 @@ from langchain_core.documents import Document
 load_dotenv()
 
 class VectorStoreManager:
-    def __init__(self, base_persist_directory: str = "chroma_db", openai_api_key: Optional[str] = None):
+    def __init__(self, base_persist_directory: Optional[str] = None, openai_api_key: Optional[str] = None):
         """
-        Initialize the vector store manager.
+        Initialize the vector store manager with Railway volume support.
         
         Args:
-            base_persist_directory: Base directory for all vector stores
-            openai_api_key: OpenAI API key for embeddings
+            base_persist_directory: Base directory for all vector stores (optional)
+            openai_api_key: OpenAI API key for embeddings (optional)
         """
-        self.base_persist_directory = base_persist_directory
-        self.openai_api_key = openai_api_key or os.getenv("OPENAI_API_KEY")
+        # Check for Railway volume mount path
+        railway_volume_path = os.environ.get("RAILWAY_VOLUME_MOUNT_PATH")
+        
+        if railway_volume_path and os.path.exists(railway_volume_path):
+            # Use Railway volume for persistence
+            self.base_persist_directory = os.path.join(railway_volume_path, "chroma_db")
+            print(f"Using Railway volume for persistence at: {self.base_persist_directory}")
+        else:
+            # Fallback to local directory
+            self.base_persist_directory = base_persist_directory or "chroma_db"
+            print(f"Using local directory for persistence at: {self.base_persist_directory}")
         
         # Create base directory if it doesn't exist
-        os.makedirs(base_persist_directory, exist_ok=True)
+        os.makedirs(self.base_persist_directory, exist_ok=True)
+        
+        # Initialize OpenAI API key
+        self.openai_api_key = openai_api_key or os.getenv("OPENAI_API_KEY")
         
         # Initialize OpenAI embeddings
         self.embeddings = OpenAIEmbeddings(
@@ -64,7 +76,7 @@ class VectorStoreManager:
                 return None
         
         try:
-            # Load vector store
+            # Load vector store with persistence
             vector_store = Chroma(
                 collection_name=collection_name,
                 embedding_function=self.embeddings,
@@ -76,6 +88,54 @@ class VectorStoreManager:
             print(f"Error loading vector store for class '{class_name}': {e}")
             return None
     
+    def create_vector_store(self, documents: List[Document], class_name: str) -> Any:
+        """
+        Create a vector store from documents.
+        
+        Args:
+            documents: List of LangChain Document objects
+            class_name: Name of the class
+            
+        Returns:
+            Chroma vector store or None if failed
+        """
+        if not documents:
+            print("No documents to create vector store from")
+            return None
+        
+        try:
+            # Create a sanitized collection name
+            collection_name = class_name.replace(" ", "_").lower()
+            
+            # Get the collection path
+            collection_path = self.get_collection_path(class_name)
+            
+            # Create directory if it doesn't exist
+            os.makedirs(collection_path, exist_ok=True)
+            
+            # Create vector store
+            vector_store = Chroma.from_documents(
+                documents=documents,
+                embedding=self.embeddings,
+                persist_directory=collection_path,
+                collection_name=collection_name
+            )
+            
+            # Explicitly persist the vector store
+            try:
+                if hasattr(vector_store, 'persist'):
+                    vector_store.persist()
+                    print(f"Vector store persisted at {collection_path}")
+            except Exception as e:
+                print(f"Warning: Could not persist vector store, but it should still be usable: {e}")
+            
+            print(f"Created vector store for class '{class_name}' with {len(documents)} documents")
+            return vector_store
+            
+        except Exception as e:
+            print(f"Error creating vector store: {e}")
+            return None
+            
     def query_vector_store(
         self, 
         class_name: str, 
@@ -225,26 +285,3 @@ class VectorStoreManager:
         except Exception as e:
             print(f"Error deleting class '{class_name}': {e}")
             return False
-
-# Example usage
-if __name__ == "__main__":
-    manager = VectorStoreManager()
-    
-    # List available classes
-    classes = manager.list_available_classes()
-    print(f"Available classes: {classes}")
-    
-    # If there are classes, query one
-    if classes:
-        class_name = classes[0]
-        query = "Explain gradient descent algorithm"
-        
-        print(f"\nQuerying class '{class_name}' with: '{query}'")
-        docs, scores = manager.query_vector_store(class_name, query)
-        
-        print(f"Found {len(docs)} results")
-        for i, (doc, score) in enumerate(zip(docs, scores)):
-            print(f"\nResult {i+1} (score: {score:.4f}):")
-            print(f"Source: {doc.metadata.get('filename', 'unknown')}")
-            print(f"Type: {doc.metadata.get('document_type', 'unknown')}")
-            print(f"Content preview: {doc.page_content[:150]}...")

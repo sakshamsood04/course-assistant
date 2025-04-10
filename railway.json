@@ -1,12 +1,25 @@
-  {
-    "$schema": "https://railway.app/railway.schema.json",
-    "build": {
-      "builder": "NIXPACKS",
-      "buildCommand": "pip install --upgrade pip && pip install -r requirements.txt"
-    },
-    "deploy": {
-      "startCommand": "python -m gunicorn app:app",
-      "restartPolicyType": "ON_FAILURE",
-      "restartPolicyMaxRetries": 10
-    }
+{
+  "$schema": "https://railway.app/railway.schema.json",
+  "build": {
+    "builder": "NIXPACKS",
+    "buildCommand": "pip install --upgrade pip && pip install -r requirements.txt"
+  },
+  "deploy": {
+    "startCommand": "python -m gunicorn app:app",
+    "restartPolicyType": "ON_FAILURE",
+    "restartPolicyMaxRetries": 10,
+    "envs": [
+      {
+        "name": "RAILWAY_VOLUME_MOUNT_PATH",
+        "value": "/data"
+      }
+    ],
+    "volumes": [
+      {
+        "name": "courseta-data",
+        "mountPath": "/data",
+        "description": "Persistent storage for course databases and ChromaDB"
+      }
+    ]
   }
+}

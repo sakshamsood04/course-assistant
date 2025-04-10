@@ -13,10 +13,10 @@ load_dotenv()
 class DocumentProcessor:
     def __init__(self, openai_api_key: Optional[str] = None):
         """
-        Initialize the document processor.
+        Initialize the document processor with Railway volume support.
         
         Args:
-            openai_api_key: OpenAI API key for embeddings
+            openai_api_key: OpenAI API key for embeddings (optional)
         """
         self.openai_api_key = openai_api_key or os.getenv("OPENAI_API_KEY")
         
@@ -125,14 +125,13 @@ class DocumentProcessor:
             print(f"Error processing directory {directory}: {e}")
             return []
     
-    def create_vector_store(self, documents: List[Document], class_name: str, persist_directory: str = "chroma_db") -> Any:
+    def create_vector_store(self, documents: List[Document], class_name: str) -> Any:
         """
         Create a vector store from documents.
         
         Args:
             documents: List of LangChain Document objects
             class_name: Name of the class
-            persist_directory: Directory to persist the vector store
             
         Returns:
             Chroma vector store or None if failed
@@ -145,11 +144,20 @@ class DocumentProcessor:
             # Create a sanitized collection name
             collection_name = class_name.replace(" ", "_").lower()
             
-            # Create persist directory if it doesn't exist
-            os.makedirs(persist_directory, exist_ok=True)
+            # Check for Railway volume mount path
+            railway_volume_path = os.environ.get("RAILWAY_VOLUME_MOUNT_PATH")
+            
+            if railway_volume_path and os.path.exists(railway_volume_path):
+                # Use Railway volume for persistence
+                base_persist_directory = os.path.join(railway_volume_path, "chroma_db")
+                print(f"Using Railway volume for persistence at: {base_persist_directory}")
+            else:
+                # Fallback to local directory
+                base_persist_directory = "chroma_db"
+                print(f"Using local directory for persistence at: {base_persist_directory}")
             
             # Create full path for this collection
-            collection_path = os.path.join(persist_directory, collection_name)
+            collection_path = os.path.join(base_persist_directory, collection_name)
             os.makedirs(collection_path, exist_ok=True)
             
             # Create vector store
@@ -160,12 +168,13 @@ class DocumentProcessor:
                 collection_name=collection_name
             )
             
-            # Try to persist if the method exists, but don't fail if it doesn't
+            # Explicitly persist the vector store
             try:
                 if hasattr(vector_store, 'persist'):
                     vector_store.persist()
+                    print(f"Vector store persisted at {collection_path}")
             except Exception as e:
-                print(f"Note: Could not persist vector store, but it should still be usable: {e}")
+                print(f"Warning: Could not persist vector store, but it should still be usable: {e}")
             
             print(f"Created vector store for class '{class_name}' with {len(documents)} documents")
             return vector_store
@@ -179,8 +188,7 @@ class DocumentProcessor:
         class_name: str, 
         textbook_path: Optional[str] = None,
         lecture_notes_dir: Optional[str] = None,
-        assignments_dir: Optional[str] = None,
-        persist_directory: str = "chroma_db"
+        assignments_dir: Optional[str] = None
     ) -> bool:
         """
         Process all materials for a class and create a vector store.
@@ -190,7 +198,6 @@ class DocumentProcessor:
             textbook_path: Path to the textbook PDF (optional)
             lecture_notes_dir: Directory containing lecture notes PDFs (optional)
             assignments_dir: Directory containing assignment PDFs (optional)
-            persist_directory: Directory to persist the vector store
             
         Returns:
             True if successful, False otherwise
@@ -217,28 +224,6 @@ class DocumentProcessor:
             return False
         
         # Create vector store
-        vector_store = self.create_vector_store(all_documents, class_name, persist_directory)
+        vector_store = self.create_vector_store(all_documents, class_name)
         
         return vector_store is not None
-
-# Example usage
-if __name__ == "__main__":
-    processor = DocumentProcessor()
-    
-    # Process a class with materials
-    class_name = "Machine Learning 101"
-    textbook_path = "path/to/textbook.pdf"  # Update with actual path
-    lecture_notes_dir = "path/to/lecture_notes"  # Update with actual path
-    assignments_dir = "path/to/assignments"  # Update with actual path
-    
-    success = processor.process_class_materials(
-        class_name=class_name,
-        textbook_path=textbook_path,
-        lecture_notes_dir=lecture_notes_dir,
-        assignments_dir=assignments_dir
-    )
-    
-    if success:
-        print(f"Successfully processed materials for class '{class_name}'")
-    else:
-        print(f"Failed to process materials for class '{class_name}'")
