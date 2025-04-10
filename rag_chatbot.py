@@ -1,14 +1,10 @@
 import os
 from typing import List, Dict, Any, Optional, Tuple
 from dotenv import load_dotenv
-from langchain_chroma import Chroma
 from langchain_openai import ChatOpenAI
-from langchain.chains import create_qa_with_sources_chain, create_retrieval_chain
-from langchain.chains.combine_documents import create_stuff_documents_chain
 from langchain_core.messages import HumanMessage, AIMessage
-from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
+from langchain_core.prompts import ChatPromptTemplate
 from langchain.callbacks import get_openai_callback
-from langchain.memory import ConversationBufferMemory
 from vector_store import VectorStoreManager
 
 # Load environment variables
