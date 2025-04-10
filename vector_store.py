@@ -1,18 +1,8 @@
 import os
 from typing import List, Dict, Any, Optional, Tuple
 from dotenv import load_dotenv
-
-# Import the correct embeddings class
 from langchain_openai import OpenAIEmbeddings
-
-# Import the correct Chroma class
-# try:
 from langchain_chroma import Chroma
-#     print("v1.1")
-# except ImportError:
-#     from langchain.vectorstores import Chroma
-#     print("v1.2")
-
 from langchain_core.documents import Document
 
 # Load environment variables
