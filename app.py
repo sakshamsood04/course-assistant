@@ -1,9 +1,9 @@
 import os
 import tempfile
-import time
 from flask import Flask, request, jsonify, render_template, redirect, url_for, flash, session
 from werkzeug.utils import secure_filename
 from dotenv import load_dotenv
+import functools
 
 from doc_proc import DocumentProcessor
 from vector_store import VectorStoreManager
@@ -33,13 +33,61 @@ chatbot = CourseAssistantChatbot()
 def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
+# Authentication decorator
+def login_required(f):
+    @functools.wraps(f)
+    def decorated_function(*args, **kwargs):
+        if not session.get('authenticated'):
+            return redirect(url_for('login', next=request.url))
+        return f(*args, **kwargs)
+    return decorated_function
+
+
+@app.route('/login', methods=['GET', 'POST'])
+def login():
+
+    FIXED_PASSWORD = "$@k$h@M"
+    
+    if request.method == 'POST':
+        password = request.form.get('password')
+        
+        if password == FIXED_PASSWORD:
+            session['authenticated'] = True
+            next_page = request.args.get('next')
+            if next_page:
+                return redirect(next_page)
+            return redirect(url_for('index'))
+        else:
+            flash('Invalid password. Please try again.')
+    
+    return render_template('login.html')
+
+@app.route('/logout')
+def logout():
+    session.pop('authenticated', None)
+    session.pop('conversation_history', None)
+    session.pop('current_class', None)
+    flash('You have been logged out.')
+    return redirect(url_for('login'))
+
 @app.route('/')
+def root():
+    if not session.get('authenticated'):
+        return redirect(url_for('login'))
+    
+    # Get list of available classes
+    classes = chatbot.get_available_classes()
+    return render_template('index.html', classes=classes)
+
+@app.route('/index')
+@login_required
 def index():
     # Get list of available classes
     classes = chatbot.get_available_classes()
     return render_template('index.html', classes=classes)
 
 @app.route('/chat', methods=['GET', 'POST'])
+@login_required
 def chat():
     if request.method == 'POST':
         # Get JSON data
@@ -93,6 +141,7 @@ def chat():
     return render_template('chat.html', classes=classes, current_class=current_class)
 
 @app.route('/add-class', methods=['GET', 'POST'])
+@login_required
 def add_class():
     if request.method == 'POST':
         class_name = request.form.get('class_name')
@@ -173,6 +222,7 @@ def add_class():
     return render_template('add_class.html')
 
 @app.route('/reset-chat', methods=['POST'])
+@login_required
 def reset_chat():
     # Clear conversation history
     session.pop('conversation_history', None)
@@ -183,6 +233,7 @@ def reset_chat():
     return jsonify({"status": "success", "message": "Conversation reset", "class": current_class})
 
 @app.route('/class-info/<class_name>')
+@login_required
 def class_info(class_name):
     # Get class info
     info = vector_store.get_class_info(class_name)
@@ -193,6 +244,7 @@ def class_info(class_name):
     return jsonify(info)
 
 @app.route('/list-classes')
+@login_required
 def list_classes():
     # Get list of classes
     classes = chatbot.get_available_classes()
@@ -207,6 +259,7 @@ def list_classes():
     return jsonify(class_info)
 
 @app.route('/delete-class/<class_name>', methods=['POST'])
+@login_required
 def delete_class(class_name):
     # Check if class exists
     info = vector_store.get_class_info(class_name)
@@ -228,6 +281,7 @@ def delete_class(class_name):
         return jsonify({"error": "Failed to delete class"}), 500
 
 @app.template_filter('to_date')
+@login_required
 def to_date(timestamp):
     """Convert timestamp to formatted date string"""
     import datetime
