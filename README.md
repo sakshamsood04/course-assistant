@@ -1,10 +1,5 @@
 # CourseTA - AI Teaching Assistant
 
-[![Python](https://img.shields.io/badge/python-3.8+-blue.svg)](https://www.python.org/downloads/)
-[![Flask](https://img.shields.io/badge/flask-2.0+-green.svg)](https://flask.palletsprojects.com/)
-[![OpenAI](https://img.shields.io/badge/openai-gpt--4-orange.svg)](https://openai.com/)
-[![ChromaDB](https://img.shields.io/badge/chromadb-0.4+-purple.svg)](https://www.trychroma.com/)
-
 CourseTA is an AI-powered teaching assistant that creates personalized chatbots for college courses. Unlike generic AI assistants, CourseTA is grounded in your actual course materials, providing accurate, contextually relevant answers with source citations.
 
 ## 🚀 Features
@@ -138,38 +133,6 @@ CourseTA is an AI-powered teaching assistant that creates personalized chatbots 
 - Responses are grounded in course materials
 - Source citations are automatically included
 
-## 📁 Project Structure
-
-```
-Course-Assistant/
-├── app.py                 # Main Flask application
-├── rag_chatbot.py        # RAG chatbot implementation
-├── doc_proc.py           # Document processing pipeline
-├── vector_store.py       # Vector store management
-├── requirements.txt      # Python dependencies
-├── templates/           # HTML templates
-│   ├── layout.html      # Base template
-│   ├── index.html       # Home page
-│   ├── chat.html        # Chat interface
-│   ├── add_class.html   # Class creation form
-│   └── login.html       # Login page
-├── uploads/             # Temporary file storage
-├── chroma_db/           # Vector database storage
-└── README.md           # This file
-```
-
-## 🚀 Deployment
-
-### Local Development
-```bash
-python app.py
-```
-
-### Production (using Gunicorn)
-```bash
-gunicorn app:app
-```
-
 ### Railway Deployment
 This project is configured for Railway deployment with:
 - Persistent volume storage
@@ -184,56 +147,3 @@ This project is configured for Railway deployment with:
 - **Document Processing**: PyPDF, PyMuPDF
 - **Frontend**: HTML, Bootstrap, JavaScript
 - **Deployment**: Railway, Gunicorn
-
-## 💡 Key Advantages Over Regular ChatGPT
-
-1. **Course-Specific Knowledge**: Only uses your uploaded materials
-2. **Source Citations**: Always provides exact page references
-3. **Consistency**: Responses align with professor's teachings
-4. **No Hallucination**: Cannot make up information not in materials
-5. **Academic Integrity**: Maintains proper attribution
-
-## 📊 Performance
-
-- **Processing Speed**: ~1-2 minutes per 100-page PDF
-- **Query Response**: ~2-5 seconds per question
-- **Storage**: ~1MB per 100 pages processed
-- **Concurrent Users**: Supports multiple simultaneous users
-
-## 🔒 Security
-
-- Password-protected access
-- File type validation (PDF only)
-- Secure file handling
-- Session management
-- Input sanitization
-
-## 🤝 Contributing
-
-1. Fork the repository
-2. Create a feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit your changes (`git commit -m 'Add amazing feature'`)
-4. Push to the branch (`git push origin feature/amazing-feature`)
-5. Open a Pull Request
-
-## 📄 License
-
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
-
-## 📞 Support
-
-If you encounter any issues or have questions:
-1. Check the [Issues](https://github.com/yourusername/Course-Assistant/issues) page
-2. Create a new issue with detailed description
-3. Include error messages and system information
-
-## 🙏 Acknowledgments
-
-- [OpenAI](https://openai.com/) for GPT-4 and embedding models
-- [LangChain](https://langchain.com/) for RAG framework
-- [ChromaDB](https://www.trychroma.com/) for vector storage
-- [Flask](https://flask.palletsprojects.com/) for web framework
-
----
-
-**Made with ❤️ for students and educators** 
