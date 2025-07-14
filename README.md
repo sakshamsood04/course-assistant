@@ -133,12 +133,6 @@ CourseTA is an AI-powered teaching assistant that creates personalized chatbots 
 - Responses are grounded in course materials
 - Source citations are automatically included
 
-### Railway Deployment
-This project is configured for Railway deployment with:
-- Persistent volume storage
-- Automatic scaling
-- Environment variable management
-
 ## 🧪 Technology Stack
 
 - **Backend**: Flask, Python 3.8+
